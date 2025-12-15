@@ -30,45 +30,123 @@ const NFASimulator = () => {
   };
 
   // Tabla de transiciones simplificada
-  const transitions = {
-    q0: {
-      'feliz': ['qF'], 'triste': ['qT'], 'cansado': ['qC'], 'ansioso': ['qA'],
-      'sorprendido': ['qS'], 'no': ['qNeg'], 'muy': ['qIntF'], 're': ['qIntF'],
-      'poco': ['qIntL'], 'algo': ['qIntL'], 'un poco': ['qIntL'],
-      'pero': ['qBut'], 'estoy': ['qNeu'], 'hoy': ['qNeu'], 'me gusta': ['qF']
-    },
-    qNeg: {
-      'triste': ['qF'], 'feliz': ['qT'], 'muy': ['qIntF_Neg'], 'estoy': ['qNeu']
-    },
-    qIntF: {
-      'feliz': ['qF', 'qIntF'], 'triste': ['qT', 'qIntF'], 
-      'cansado': ['qC', 'qIntF'], 'ansioso': ['qA', 'qIntF'],
-      'pero': ['qBut']
-    },
-    qIntL: {
-      'feliz': ['qF', 'qIntL'], 'triste': ['qT', 'qIntL'], 
-      'ansioso': ['qA', 'qIntL']
-    },
-    qIntF_Neg: {
-      'feliz': ['qT'], 'triste': ['qF']
-    },
-    qNeu: {
-      'feliz': ['qF'], 'triste': ['qT'], 'cansado': ['qC'], 
-      'ansioso': ['qA'], 'sorprendido': ['qS'], 'muy': ['qIntF'],
-      'estoy': ['qNeu'], 'hoy': ['qNeu'], 'y': ['qNeu']
-    },
-    qBut: {
-      'epsilon': ['q0'], 'feliz': ['qF'], 'triste': ['qT'], 
-      'cansado': ['qC'], 'ansioso': ['qA'], 'muy': ['qIntF'],
-      'un poco': ['qIntL']
-    },
-    qF: { 'y': ['qNeu'], 'epsilon': ['qEnd'] },
-    qT: { 'pero': ['qBut'], 'epsilon': ['qEnd'] },
-    qC: { 'pero': ['qBut'], 'epsilon': ['qEnd'] },
-    qA: { 'epsilon': ['qEnd'] },
-    qS: { 'epsilon': ['qEnd'] },
-    qEnd: { 'este': ['qEnd'], 'dia': ['qEnd'], 'día': ['qEnd'] }
-  };
+const transitions = {
+  q0: {
+    'feliz': ['qF'],
+    'triste': ['qT'],
+    'cansado': ['qC'],
+    'ansioso': ['qA'],
+    'sorprendido': ['qS'],
+    'no': ['qNeg'],
+    'nunca': ['qNeg'],
+    'muy': ['qIntF'],
+    're': ['qIntF'],
+    'demasiado': ['qIntF'],
+    'poco': ['qIntL'],
+    'algo': ['qIntL'],
+    'un poco': ['qIntL'],
+    'estoy': ['qNeu'],
+    'hoy': ['qNeu'],
+    'yo': ['qNeu'],
+    'hola': ['qNeu'],
+    'pero': ['qBut'],
+    'aunque': ['qBut'],
+    'me gusta': ['qF'],
+    'epsilon': ['qSink']
+  },
+
+  qNeg: {
+    'feliz': ['qT'],
+    'triste': ['qF'],
+    'cansado': ['qF'],
+    'ansioso': ['qF'],
+    'muy': ['qIntF_Neg'],
+    're': ['qIntF_Neg'],
+    'estoy': ['qNeu']
+  },
+
+  qIntF: {
+    'feliz': ['qF', 'qIntF'],
+    'triste': ['qT', 'qIntF'],
+    'cansado': ['qC', 'qIntF'],
+    'ansioso': ['qA', 'qIntF'],
+    'sorprendido': ['qS', 'qIntF'],
+    'pero': ['qBut']
+  },
+
+  qIntL: {
+    'feliz': ['qF', 'qIntL'],
+    'triste': ['qT', 'qIntL'],
+    'cansado': ['qC', 'qIntL'],
+    'ansioso': ['qA', 'qIntL']
+  },
+
+  qIntF_Neg: {
+    'feliz': ['qT'],
+    'triste': ['qF'],
+    'cansado': ['qF']
+  },
+
+  qNeu: {
+    'feliz': ['qF'],
+    'triste': ['qT'],
+    'cansado': ['qC'],
+    'ansioso': ['qA'],
+    'sorprendido': ['qS'],
+    'muy': ['qIntF'],
+    'poco': ['qIntL'],
+    'y': ['qNeu'],
+    'estoy': ['qNeu'],
+    'hoy': ['qNeu']
+  },
+
+  qBut: {
+    'epsilon': ['q0'],
+    'feliz': ['qF'],
+    'triste': ['qT'],
+    'cansado': ['qC'],
+    'ansioso': ['qA'],
+    'sorprendido': ['qS'],
+    'muy': ['qIntF'],
+    'un poco': ['qIntL']
+  },
+
+  qF: {
+    'y': ['qNeu'],
+    'pero': ['qBut'],
+    'epsilon': ['qEnd']
+  },
+
+  qT: {
+    'y': ['qNeu'],
+    'pero': ['qBut'],
+    'epsilon': ['qEnd']
+  },
+
+  qC: {
+    'y': ['qNeu'],
+    'pero': ['qBut'],
+    'epsilon': ['qEnd']
+  },
+
+  qA: {
+    'y': ['qNeu'],
+    'epsilon': ['qEnd']
+  },
+
+  qS: {
+    'y': ['qNeu'],
+    'epsilon': ['qEnd']
+  },
+
+  qEnd: {
+    'este': ['qEnd'],
+    'día': ['qEnd'],
+    'dia': ['qEnd']
+  },
+
+  qSink: {}
+};
 
   // Tokenizar entrada
   const tokenize = (text) => {
@@ -137,7 +215,7 @@ const NFASimulator = () => {
         step: idx + 1,
         token: token,
         states: Array.from(currentStates),
-        interpretation: interpretStates(currentStates)
+        interpretation: interpretStates(currentStates, executionTrace)
       });
     });
 
@@ -152,7 +230,7 @@ const NFASimulator = () => {
       accepted,
       finalStates,
       trace: executionTrace,
-      interpretation: interpretStates(currentStates)
+      interpretation: interpretStates(currentStates, executionTrace)
     };
   };
 
@@ -177,13 +255,14 @@ const NFASimulator = () => {
   };
 
   // Interpretar estados finales
-  const interpretStates = (states) => {
-    const stateArray = Array.from(states);
-    const emotions = [];
-    let intensity = 'normal';
-    let negation = false;
+const interpretStates = (states, trace = []) => {
+  const stateArray = Array.from(states);
+  const emotions = [];
+  let intensity = 'normal';
+  let negation = false;
 
-    stateArray.forEach(state => {
+  const processStates = (arr) => {
+    arr.forEach(state => {
       if (state === 'qF') emotions.push('Felicidad');
       if (state === 'qT') emotions.push('Tristeza');
       if (state === 'qC') emotions.push('Cansancio');
@@ -194,15 +273,27 @@ const NFASimulator = () => {
       if (state === 'qIntL') intensity = 'LEVE';
       if (state === 'qNeg') negation = true;
     });
-
-    if (emotions.length === 0) return 'Sin emoción detectada';
-    
-    let result = emotions.join(' + ');
-    if (intensity !== 'normal') result += ` (intensidad ${intensity})`;
-    if (negation) result += ' [con negación activa]';
-    
-    return result;
   };
+
+  // 1. Estados actuales
+  processStates(stateArray);
+
+  // 2. Si no hay emoción, busco en la traza hacia atrás
+  if (emotions.length === 0) {
+    for (let i = trace.length - 1; i >= 0; i--) {
+      processStates(Array.from(trace[i].states));
+      if (emotions.length > 0) break;
+    }
+  }
+
+  if (emotions.length === 0) return 'Sin emoción detectada';
+
+  let result = emotions.join(' + ');
+  if (intensity !== 'normal') result += ` (intensidad ${intensity})`;
+  if (negation) result += ' [con negación activa]';
+
+  return result;
+};
 
   // Ejecutar simulación
   const runSimulation = () => {
@@ -248,7 +339,7 @@ const NFASimulator = () => {
             🤖 Simulador NFA - Detector de Emociones
           </h1>
           <p className="text-gray-600">
-            Implementación en Python/JavaScript del Autómata Finito No Determinista
+            Implementación web del Autómata Finito No Determinista
           </p>
         </div>
 
