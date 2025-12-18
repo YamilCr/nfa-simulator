@@ -33,6 +33,7 @@ const NFASimulator = () => {
 const transitions = {
   q0: {
     'feliz': ['qF'],
+    'aprobado': ['qF'],
     'triste': ['qT'],
     'cansado': ['qC'],
     'ansioso': ['qA'],
